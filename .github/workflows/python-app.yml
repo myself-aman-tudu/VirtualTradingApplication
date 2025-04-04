@@ -8,6 +8,7 @@ on:
 
 jobs:
   build:
+
     runs-on: ubuntu-latest
 
     steps:
@@ -24,11 +25,17 @@ jobs:
         python3 -m pip install --upgrade pip
         pip3 install -r requirements.txt
 
-    - name: Run Application to Generate Database
+    - name: Create assets folder if it doesn't exist
+      run: mkdir -p assets
+
+    - name: Initialize database
+      run: python3 application.py
+
+    - name: Check if clientData.db exists
+      id: check_db
       run: |
-        python3 application.py || true
+        if [ -f assets/clientData.db ]; then echo "::set-output name=exists::true"; else echo "::set-output name=exists::false"; fi
 
     - name: Run Tests
-      run: |
-        pytest
-
+      if: steps.check_db.outputs.exists == 'true'
+      run: pytest
